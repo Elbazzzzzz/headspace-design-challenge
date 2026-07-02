@@ -3,131 +3,386 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Neuron Signal Journey</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="./styles.css" />
+    <title>Square Breathing</title>
+    <style>
+      :root {
+        --phase: 0;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: "Avenir Next", "Nunito", "Inter", system-ui, -apple-system, Segoe UI,
+          Roboto, sans-serif;
+      }
+
+      body {
+        display: grid;
+        place-items: center;
+        transition: background 220ms linear;
+        background: linear-gradient(
+          165deg,
+          hsl(31 100% 76%),
+          hsl(37 100% 83%) 42%,
+          hsl(53 100% 90%)
+        );
+      }
+
+      .scene {
+        width: min(82vmin, 560px);
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+        position: relative;
+      }
+
+      .ring {
+        position: absolute;
+        width: 75%;
+        height: 75%;
+        border-radius: 999px;
+        border: 2px solid rgba(255, 255, 255, 0.56);
+        box-shadow: 0 0 0 20px rgba(255, 255, 255, 0.09);
+      }
+
+      .breath-circle {
+        width: 30%;
+        height: 30%;
+        border-radius: 999px;
+        background: #f47c2d;
+        box-shadow: 0 10px 42px rgba(131, 52, 10, 0.32);
+        transform: scale(1);
+        will-change: transform;
+        display: grid;
+        place-items: center;
+      }
+
+      .face {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 17.4%;
+        height: 17.4%;
+        transform: translate(-50%, -50%) translateY(var(--face-y, 0px))
+          scale(var(--face-scale, 1));
+        transform-origin: center;
+        will-change: transform;
+        z-index: 2;
+      }
+
+      .face svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+        shape-rendering: geometricPrecision;
+        text-rendering: geometricPrecision;
+      }
+
+      .face path {
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        vector-effect: non-scaling-stroke;
+      }
+
+      .label {
+        position: absolute;
+        bottom: max(1%, env(safe-area-inset-bottom));
+        color: #2f3f63;
+        font-size: clamp(0.92rem, 1.8vw, 1.06rem);
+        letter-spacing: 0.06em;
+        font-weight: 700;
+        text-transform: uppercase;
+        text-shadow: none;
+        background: rgba(255, 255, 255, 0.96);
+        border-radius: 999px;
+        padding: 0.58rem 1rem;
+        box-shadow: 0 8px 20px rgba(47, 63, 99, 0.16);
+        min-width: 124px;
+        text-align: center;
+      }
+
+      .countdown {
+        position: absolute;
+        left: 50%;
+        bottom: calc(max(1%, env(safe-area-inset-bottom)) - 46px);
+        transform: translateX(-50%);
+        color: #2f3f63;
+        background: #ffffff;
+        border-radius: 999px;
+        padding: 0.38rem 0.78rem;
+        font-size: 0.88rem;
+        font-weight: 700;
+        line-height: 1;
+        box-shadow: 0 8px 20px rgba(47, 63, 99, 0.16);
+        opacity: 0;
+        transition: opacity 160ms ease;
+      }
+
+      .countdown.is-visible {
+        opacity: 1;
+      }
+
+      .title {
+        position: absolute;
+        top: max(2%, env(safe-area-inset-top));
+        transform: translateY(-64px);
+        margin: 0;
+        color: #2f3f63;
+        font-weight: 700;
+        font-size: clamp(1rem, 2.1vw, 1.25rem);
+        letter-spacing: 0.02em;
+        text-shadow: none;
+        background: rgba(255, 255, 255, 0.96);
+        border-radius: 999px;
+        padding: 0.64rem 1.12rem;
+        box-shadow: 0 8px 20px rgba(47, 63, 99, 0.16);
+      }
+
+      .speech-bubble {
+        position: absolute;
+        top: 50%;
+        max-width: min(34vw, 260px);
+        color: #2f3f63;
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 0.7rem 1rem;
+        text-align: center;
+        font-size: clamp(0.88rem, 1.7vw, 1rem);
+        font-weight: 600;
+        line-height: 1.35;
+        box-shadow: 0 10px 24px rgba(47, 63, 99, 0.16);
+        opacity: 0;
+        transition: opacity 240ms ease, transform 240ms ease;
+        pointer-events: none;
+        z-index: 6;
+      }
+
+      .speech-bubble.is-visible {
+        opacity: 1;
+      }
+
+      .speech-bubble.left {
+        left: 8%;
+        transform: translate(-208px, -50%);
+      }
+
+      .speech-bubble.right {
+        right: 8%;
+        transform: translate(208px, -50%);
+      }
+
+      .speech-bubble.left.is-visible {
+        transform: translate(-200px, -50%);
+      }
+
+      .speech-bubble.right.is-visible {
+        transform: translate(200px, -50%);
+      }
+
+      .speech-bubble::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        width: 18px;
+        height: 18px;
+        background: #ffffff;
+        transform: translateY(-50%) rotate(45deg);
+        border-radius: 3px;
+      }
+
+      .speech-bubble.left::after {
+        right: -9px;
+      }
+
+      .speech-bubble.right::after {
+        left: -9px;
+      }
+    </style>
   </head>
   <body>
-    <div class="page-scroll">
-      <main class="page">
-      <section class="hero">
-        <p class="eyebrow">Neural Signaling</p>
-        <h1>How impulses travel down a neuron</h1>
-        <p class="subtitle">
-          Scroll to follow the signal from dendrites to terminal branches.
-        </p>
-      </section>
+    <main class="scene" aria-label="Square breathing animation">
+      <p class="title">Square Breathing</p>
+      <div class="speech-bubble" id="speechBubble" aria-live="polite"></div>
+      <div class="ring" aria-hidden="true"></div>
+      <div class="breath-circle" id="breathCircle"></div>
+      <div class="face" aria-hidden="true">
+        <svg viewBox="0 0 240 240" role="presentation">
+          <path
+            d="M26 92 C40 106, 68 106, 84 92"
+            fill="none"
+            stroke="#2f3f63"
+            stroke-width="12"
+          />
+          <path
+            d="M156 92 C172 106, 200 106, 214 92"
+            fill="none"
+            stroke="#2f3f63"
+            stroke-width="12"
+          />
+          <path
+            d="M36 136 C78 182, 162 182, 204 136"
+            fill="none"
+            stroke="#2f3f63"
+            stroke-width="13"
+          />
+        </svg>
+      </div>
+      <p class="label"><span id="phaseText">Inhale</span></p>
+      <p class="countdown" id="holdCountdown" aria-live="polite"></p>
+    </main>
 
-      <section class="viz-wrap">
-        <div class="viz-sticky">
-          <div class="canvas-wrap">
-            <svg
-              id="neuronSvg"
-              viewBox="0 0 1200 760"
-              aria-label="Illustration of a neuron"
-              role="img"
-            >
-              <defs>
-                <linearGradient id="axonGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stop-color="#88a6ff" />
-                  <stop offset="100%" stop-color="#6b8dff" />
-                </linearGradient>
-                <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
-                  <feDropShadow
-                    dx="0"
-                    dy="6"
-                    stdDeviation="8"
-                    flood-color="#0a143f"
-                    flood-opacity="0.38"
-                  />
-                </filter>
-              </defs>
+    <script>
+      const breathCircle = document.getElementById("breathCircle");
+      const face = document.querySelector(".face");
+      const ring = document.querySelector(".ring");
+      const phaseText = document.getElementById("phaseText");
+      const holdCountdown = document.getElementById("holdCountdown");
+      const speechBubble = document.getElementById("speechBubble");
+      let previousPhaseIndex = -1;
+      let firstInhaleSkipped = false;
+      let showBubbleOnLeft = true;
 
-              <g id="part-dendrites" class="part">
-                <path
-                  class="branch"
-                  d="M210 320 C130 280, 120 220, 160 175"
-                />
-                <path
-                  class="branch"
-                  d="M220 355 C128 356, 90 410, 110 470"
-                />
-                <path
-                  class="branch"
-                  d="M245 290 C188 214, 210 136, 280 96"
-                />
-                <path
-                  class="branch"
-                  d="M250 385 C185 446, 183 525, 252 575"
-                />
-              </g>
+      // Square breathing: 4s inhale, 4s hold, 4s exhale, 4s hold.
+      const phaseDuration = 4000;
+      const cycleDuration = phaseDuration * 4;
 
-              <g id="part-soma" class="part">
-                <circle class="soma" cx="320" cy="340" r="124" />
-                <circle class="nucleus" cx="338" cy="338" r="42" />
-              </g>
+      const daytime = [
+        [31, 100, 76],
+        [37, 100, 83],
+        [53, 100, 90],
+      ];
 
-              <g id="part-axon" class="part">
-                <path
-                  class="axon"
-                  d="M444 340 C560 326, 705 346, 855 338 C980 334, 1056 350, 1110 366"
-                />
-              </g>
+      const nighttime = [
+        [233, 58, 22],
+        [246, 45, 15],
+        [265, 40, 20],
+      ];
 
-              <g id="part-myelin" class="part">
-                <ellipse class="myelin" cx="568" cy="336" rx="58" ry="38" />
-                <ellipse class="myelin" cx="690" cy="342" rx="58" ry="38" />
-                <ellipse class="myelin" cx="812" cy="338" rx="58" ry="38" />
-                <ellipse class="myelin" cx="934" cy="343" rx="58" ry="38" />
-              </g>
+      const mix = (a, b, t) => a + (b - a) * t;
+      const mixColor = (c1, c2, t) => [
+        mix(c1[0], c2[0], t),
+        mix(c1[1], c2[1], t),
+        mix(c1[2], c2[2], t),
+      ];
 
-              <g id="part-terminals" class="part">
-                <path
-                  class="terminal"
-                  d="M1110 368 C1148 333, 1172 292, 1168 244"
-                />
-                <path
-                  class="terminal"
-                  d="M1110 368 C1170 366, 1196 402, 1194 448"
-                />
-                <path
-                  class="terminal"
-                  d="M1110 368 C1154 398, 1170 457, 1148 514"
-                />
-                <circle class="synapse" cx="1168" cy="244" r="13" />
-                <circle class="synapse" cx="1194" cy="448" r="13" />
-                <circle class="synapse" cx="1148" cy="514" r="13" />
-              </g>
+      function setGradient(nightAmount) {
+        const c1 = mixColor(daytime[0], nighttime[0], nightAmount);
+        const c2 = mixColor(daytime[1], nighttime[1], nightAmount);
+        const c3 = mixColor(daytime[2], nighttime[2], nightAmount);
+        document.body.style.background = `linear-gradient(
+          165deg,
+          hsl(${c1[0]} ${c1[1]}% ${c1[2]}%),
+          hsl(${c2[0]} ${c2[1]}% ${c2[2]}%) 45%,
+          hsl(${c3[0]} ${c3[1]}% ${c3[2]}%)
+        )`;
+      }
 
-              <circle id="pulse" cx="444" cy="340" r="11" />
-            </svg>
-          </div>
+      function update(time) {
+        const cycleTime = time % cycleDuration;
+        const phaseIndex = Math.floor(cycleTime / phaseDuration);
+        const phaseTime = (cycleTime % phaseDuration) / phaseDuration;
+        const phaseChanged = phaseIndex !== previousPhaseIndex;
 
-          <aside class="info-card" id="infoCard">
-            <h2 id="partTitle">Dendrites</h2>
-            <p id="partText">
-              Dendrites receive incoming chemical and electrical messages from
-              neighboring neurons.
-            </p>
-          </aside>
-        </div>
+        let scale = 1;
+        let label = "Inhale";
 
-        <div class="scroll-track">
-          <article class="step is-active" data-part="dendrites"></article>
-          <article class="step" data-part="soma"></article>
-          <article class="step" data-part="axon"></article>
-          <article class="step" data-part="myelin"></article>
-          <article class="step" data-part="terminals"></article>
-        </div>
-      </section>
-      </main>
-    </div>
+        if (phaseIndex === 0) {
+          scale = 1 + 1.15 * phaseTime;
+          label = "Inhale";
+          holdCountdown.textContent = "";
+          holdCountdown.classList.remove("is-visible");
+          if (phaseChanged) {
+            if (!firstInhaleSkipped) {
+              firstInhaleSkipped = true;
+              speechBubble.classList.remove("is-visible");
+            } else {
+              speechBubble.textContent = "Keep going!";
+              speechBubble.classList.remove("left", "right");
+              speechBubble.classList.add(showBubbleOnLeft ? "left" : "right");
+              speechBubble.classList.add("is-visible");
+              showBubbleOnLeft = !showBubbleOnLeft;
+            }
+          }
+        } else if (phaseIndex === 1) {
+          scale = 2.15;
+          label = "Hold";
+          holdCountdown.textContent = `${Math.max(1, Math.ceil((1 - phaseTime) * 4))}`;
+          holdCountdown.classList.add("is-visible");
+          if (phaseChanged) speechBubble.classList.remove("is-visible");
+        } else if (phaseIndex === 2) {
+          scale = 2.15 - 1.15 * phaseTime;
+          label = "Exhale";
+          holdCountdown.textContent = "";
+          holdCountdown.classList.remove("is-visible");
+          if (phaseChanged) {
+            speechBubble.textContent =
+              "It's fine if your mind wanders, just bring it back.";
+            speechBubble.classList.remove("left", "right");
+            speechBubble.classList.add(showBubbleOnLeft ? "left" : "right");
+            speechBubble.classList.add("is-visible");
+            showBubbleOnLeft = !showBubbleOnLeft;
+          }
+        } else {
+          scale = 1;
+          label = "Hold";
+          holdCountdown.textContent = `${Math.max(1, Math.ceil((1 - phaseTime) * 4))}`;
+          holdCountdown.classList.add("is-visible");
+          if (phaseChanged) speechBubble.classList.remove("is-visible");
+        }
 
-    <script src="./script.js"></script>
+        // Night peaks around full inhale/hold, then returns toward day.
+        const cycleProgress = cycleTime / cycleDuration;
+        const nightAmount = 0.5 - 0.5 * Math.cos(cycleProgress * Math.PI * 2);
+
+        // Keep strong separation from the background while preserving brand orange.
+        const circleBaseLightness = mix(46, 66, nightAmount);
+        const circleMidLightness = mix(54, 74, nightAmount);
+        const circleHighlightLightness = mix(62, 82, nightAmount);
+        const edgeOpacity = mix(0.56, 0.78, nightAmount);
+        const glowAlpha = mix(0.3, 0.48, nightAmount);
+
+        breathCircle.style.transform = `scale(${scale})`;
+        breathCircle.style.background = `radial-gradient(
+          circle at 32% 28%,
+          hsl(27 92% ${circleHighlightLightness}% / 0.58),
+          hsl(27 90% ${circleMidLightness}% / 0.9) 42%,
+          hsl(25 88% ${circleBaseLightness}%)
+        )`;
+        breathCircle.style.boxShadow = `0 0 0 2px rgba(255,255,255,${edgeOpacity}), 0 12px 40px rgba(125, 44, 4, ${glowAlpha})`;
+        breathCircle.style.filter = `saturate(${1.04 + 0.16 * (1 - nightAmount)})`;
+        // Clear face motion with end-weighted easing.
+        let breathLift = 0;
+        const maxLiftPx = 8;
+        const easeToEnd = (t) => t * t * t;
+        if (phaseIndex === 0) {
+          breathLift = -maxLiftPx * easeToEnd(phaseTime);
+        } else if (phaseIndex === 1) {
+          breathLift = -maxLiftPx;
+        } else if (phaseIndex === 2) {
+          breathLift = -maxLiftPx * (1 - easeToEnd(phaseTime));
+        } else {
+          breathLift = 0;
+        }
+        const faceScale = 0.99 + (scale - 1) * 0.02;
+        const faceLift = breathLift;
+        face.style.setProperty("--face-y", `${faceLift}px`);
+        face.style.setProperty("--face-scale", `${faceScale}`);
+        ring.style.borderColor = `rgba(255, 255, 255, ${mix(0.5, 0.7, nightAmount)})`;
+        phaseText.textContent = label;
+        setGradient(nightAmount);
+        previousPhaseIndex = phaseIndex;
+
+        requestAnimationFrame(update);
+      }
+
+      requestAnimationFrame(update);
+    </script>
   </body>
 </html>
