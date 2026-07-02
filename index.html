@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Neuron Signal Journey</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-scroll">
+      <main class="page">
+      <section class="hero">
+        <p class="eyebrow">Neural Signaling</p>
+        <h1>How impulses travel down a neuron</h1>
+        <p class="subtitle">
+          Scroll to follow the signal from dendrites to terminal branches.
+        </p>
+      </section>
+
+      <section class="viz-wrap">
+        <div class="viz-sticky">
+          <div class="canvas-wrap">
+            <svg
+              id="neuronSvg"
+              viewBox="0 0 1200 760"
+              aria-label="Illustration of a neuron"
+              role="img"
+            >
+              <defs>
+                <linearGradient id="axonGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#88a6ff" />
+                  <stop offset="100%" stop-color="#6b8dff" />
+                </linearGradient>
+                <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow
+                    dx="0"
+                    dy="6"
+                    stdDeviation="8"
+                    flood-color="#0a143f"
+                    flood-opacity="0.38"
+                  />
+                </filter>
+              </defs>
+
+              <g id="part-dendrites" class="part">
+                <path
+                  class="branch"
+                  d="M210 320 C130 280, 120 220, 160 175"
+                />
+                <path
+                  class="branch"
+                  d="M220 355 C128 356, 90 410, 110 470"
+                />
+                <path
+                  class="branch"
+                  d="M245 290 C188 214, 210 136, 280 96"
+                />
+                <path
+                  class="branch"
+                  d="M250 385 C185 446, 183 525, 252 575"
+                />
+              </g>
+
+              <g id="part-soma" class="part">
+                <circle class="soma" cx="320" cy="340" r="124" />
+                <circle class="nucleus" cx="338" cy="338" r="42" />
+              </g>
+
+              <g id="part-axon" class="part">
+                <path
+                  class="axon"
+                  d="M444 340 C560 326, 705 346, 855 338 C980 334, 1056 350, 1110 366"
+                />
+              </g>
+
+              <g id="part-myelin" class="part">
+                <ellipse class="myelin" cx="568" cy="336" rx="58" ry="38" />
+                <ellipse class="myelin" cx="690" cy="342" rx="58" ry="38" />
+                <ellipse class="myelin" cx="812" cy="338" rx="58" ry="38" />
+                <ellipse class="myelin" cx="934" cy="343" rx="58" ry="38" />
+              </g>
+
+              <g id="part-terminals" class="part">
+                <path
+                  class="terminal"
+                  d="M1110 368 C1148 333, 1172 292, 1168 244"
+                />
+                <path
+                  class="terminal"
+                  d="M1110 368 C1170 366, 1196 402, 1194 448"
+                />
+                <path
+                  class="terminal"
+                  d="M1110 368 C1154 398, 1170 457, 1148 514"
+                />
+                <circle class="synapse" cx="1168" cy="244" r="13" />
+                <circle class="synapse" cx="1194" cy="448" r="13" />
+                <circle class="synapse" cx="1148" cy="514" r="13" />
+              </g>
+
+              <circle id="pulse" cx="444" cy="340" r="11" />
+            </svg>
+          </div>
+
+          <aside class="info-card" id="infoCard">
+            <h2 id="partTitle">Dendrites</h2>
+            <p id="partText">
+              Dendrites receive incoming chemical and electrical messages from
+              neighboring neurons.
+            </p>
+          </aside>
+        </div>
+
+        <div class="scroll-track">
+          <article class="step is-active" data-part="dendrites"></article>
+          <article class="step" data-part="soma"></article>
+          <article class="step" data-part="axon"></article>
+          <article class="step" data-part="myelin"></article>
+          <article class="step" data-part="terminals"></article>
+        </div>
+      </section>
+      </main>
+    </div>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
